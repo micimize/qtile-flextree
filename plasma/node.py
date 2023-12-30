@@ -2,6 +2,7 @@ from collections import namedtuple
 import time
 from math import isclose
 import sys
+from typing import Generator, Optional
 
 if sys.version_info >= (3, 6):
     from enum import Enum, Flag, auto
@@ -75,10 +76,19 @@ class Node:
         self._size = None
         self.children = []
         self.last_accessed = 0
-        self.parent = None
+        self._parent: Optional["Node"] = None
         self.restorables = {}
+    
+    @property
+    def parent(self) -> "Node":
+        assert isinstance(self._parent, Node), f"Node {self} attempted to reference parent before it was set"
+        return self._parent
 
-    def __repr__(self):
+    @parent.setter
+    def parent(self, new_parent: "Node") -> None:
+        self._parent = new_parent
+
+    def __repr__(self) -> str:
         info = self.payload or ''
         if self:
             info += ' +%d' % len(self)
@@ -101,26 +111,26 @@ class Node:
     def __setitem__(self, key, value):
         self.children[key] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.children)
 
     @property
-    def root(self):
+    def root(self) -> "Node":
         try:
             return self.parent.root
-        except AttributeError:
+        except (AttributeError, AssertionError):
             return self
 
     @property
-    def is_root(self):
-        return self.parent is None
+    def is_root(self) -> bool:
+        return self._parent is None
 
     @property
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         return not self
 
     @property
-    def index(self):
+    def index(self) -> int:
         return self.parent.children.index(self)
 
     @property
@@ -168,7 +178,7 @@ class Node:
         return self.parent[idx].first_leaf
 
     @property
-    def all_leafs(self):
+    def all_leafs(self) -> Generator["Node", None, None]:
         if self.is_leaf:
             yield self
         for child in self:
@@ -189,7 +199,7 @@ class Node:
         return self.orient is VERTICAL
 
     @property
-    def x(self):
+    def x(self)->int:
         if self.is_root:
             return self._x
         if self.horizontal:
@@ -197,13 +207,13 @@ class Node:
         return self.parent.x + self.size_offset
 
     @x.setter
-    def x(self, val):
+    def x(self, val)-> None:
         if not self.is_root:
             return
         self._x = val
 
     @property
-    def y(self):
+    def y(self) -> int:
         if self.is_root:
             return self._y
         if self.vertical:
@@ -221,7 +231,7 @@ class Node:
         return Point(self.x, self.y)
 
     @property
-    def width(self):
+    def width(self) -> int:
         if self.is_root:
             return self._width
         if self.horizontal:
@@ -229,7 +239,7 @@ class Node:
         return self.size
 
     @width.setter
-    def width(self, val):
+    def width(self, val)-> None:
         if self.is_root:
             self._width = val
         elif self.horizontal:
@@ -255,43 +265,43 @@ class Node:
             self.size = val
 
     @property
-    def x_end(self):
+    def x_end(self) -> int:
         return self.x + self.width
 
     @property
-    def y_end(self):
+    def y_end(self) -> int:
         return self.y + self.height
 
     @property
-    def x_center(self):
+    def x_center(self) -> int:
         return self.x + self.width / 2
 
     @property
-    def y_center(self):
+    def y_center(self) -> int:
         return self.y + self.height / 2
 
     @property
-    def center(self):
+    def center(self) -> Point:
         return Point(self.x_center, self.y_center)
 
     @property
-    def top_left(self):
+    def top_left(self) -> Point:
         return Point(self.x, self.y)
 
     @property
-    def top_right(self):
+    def top_right(self) -> Point:
         return Point(self.x + self.width, self.y)
 
     @property
-    def bottom_left(self):
+    def bottom_left(self) -> Point:
         return Point(self.x, self.y + self.height)
 
     @property
-    def bottom_right(self):
+    def bottom_right(self) -> Point:
         return Point(self.x + self.width, self.y + self.height)
 
     @property
-    def pixel_perfect(self):
+    def pixel_perfect(self) -> Dimensions:
         """Return pixel-perfect int dimensions (x, y, width, height) which
         compensate for gaps in the layout grid caused by plain int conversion.
         """
@@ -347,7 +357,7 @@ class Node:
         return sum(c.size for c in self.parent[:self.index])
 
     @staticmethod
-    def fit_into(nodes, space):
+    def fit_into(nodes: list["Node"], space:int):
         """Resize nodes to fit them into the available space."""
         if not nodes:
             return
@@ -377,12 +387,12 @@ class Node:
                 Node.fit_into(child, new_size)
 
     @property
-    def fixed(self):
+    def fixed(self)->float:
         """A node is fixed if it has a specified size."""
         return self._size is not None
 
     @property
-    def min_size(self):
+    def min_size(self)->int:
         if self.fixed:
             return self._size
         if self.is_leaf:
@@ -391,7 +401,7 @@ class Node:
         return max(size, self.min_size_default)
 
     @property
-    def min_size_bound(self):
+    def min_size_bound(self)->int:
         if self.is_leaf:
             return self.min_size_default
         return max(sum(gc.min_size_bound for gc in c) or
@@ -401,7 +411,7 @@ class Node:
         self._size = None
 
     @property
-    def flexible(self):
+    def flexible(self)->bool:
         """A node is flexible if its size isn't (explicitly or implictly)
         determined.
         """
@@ -409,14 +419,14 @@ class Node:
             return False
         return all((any(gc.flexible for gc in c) or c.is_leaf) for c in self)
 
-    def access(self):
+    def access(self)->None:
         self.last_accessed = time.time()
         try:
             self.parent.access()
-        except AttributeError:
+        except (AttributeError, AssertionError):
             pass
 
-    def neighbor(self, direction):
+    def neighbor(self, direction: Direction) -> Optional["Node"]:
         """Return adjacent leaf node in specified direction."""
         if self.is_root:
             return None
@@ -430,22 +440,22 @@ class Node:
         return self.parent.neighbor(direction)
 
     @property
-    def up(self):
+    def up(self) -> Optional["Node"]:
         return self.neighbor(UP)
 
     @property
-    def down(self):
+    def down(self) -> Optional["Node"]:
         return self.neighbor(DOWN)
 
     @property
-    def left(self):
+    def left(self) -> Optional["Node"]:
         return self.neighbor(LEFT)
 
     @property
-    def right(self):
+    def right(self) -> Optional["Node"]:
         return self.neighbor(RIGHT)
 
-    def common_border(self, node, direction):
+    def common_border(self, node: "Node", direction: Direction) -> bool:
         """Return whether a common border with given node in specified
         direction exists.
         """
@@ -488,7 +498,7 @@ class Node:
     def close_right(self):
         return self.close_neighbor(RIGHT)
 
-    def add_child(self, node, idx=None):
+    def add_child(self, node: "Node", idx: Optional[int]=None):
         if idx is None:
             idx = len(self)
         self.children.insert(idx, node)
@@ -498,10 +508,10 @@ class Node:
         total = self.capacity
         Node.fit_into(node.siblings, total - (total / len(self)))
 
-    def add_child_after(self, new, old):
+    def add_child_after(self, new: "Node", old: "Node"):
         self.add_child(new, idx=old.index+1)
 
-    def remove_child(self, node):
+    def remove_child(self, node: "Node"):
         node._save_restore_state()  # pylint: disable=W0212
         node.force_size(0)
         self.children.remove(node)
@@ -515,15 +525,22 @@ class Node:
                 self.parent.replace_child(self, child)
                 Node.fit_into(child, self.capacity)
 
-    def remove(self):
+    def remove(self)->None:
         self.parent.remove_child(self)
 
-    def replace_child(self, old, new):
+    def replace_child(self, old: "Node", new: "Node")-> None:
         self[old.index] = new
         new.parent = self
         new._size = old._size  # pylint: disable=protected-access
 
-    def flip_with(self, node, reverse=False):
+    def swap_with(self, other: "Node")-> None:
+        other_parent = other.parent
+        other_size = other._size
+        self.parent.replace_child(self, other)
+        other_parent.replace_child(other, self)
+        self._size = other_size
+
+    def flip_with(self, node: "Node", reverse:bool=False)-> None:
         """Join with node in a new, orthogonal container."""
         container = Node()
         self.parent.replace_child(self, container)
@@ -593,8 +610,8 @@ class Node:
                 parent = self.siblings[0]
         self.root.restorables[self.payload] = (parent, self.index, sizes,
                                                self.fixed, flip)
-
-    def move(self, direction):
+    
+    def move(self, direction: Direction) -> bool:
         """Move this node in `direction`. Return whether node was moved."""
         if self.is_root:
             return False
@@ -664,7 +681,7 @@ class Node:
     def integrate_right(self):
         self.integrate(RIGHT)
 
-    def find_payload(self, payload):
+    def find_payload(self, payload)-> Optional["Node"]:
         if self.payload is payload:
             return self
         for child in self:
