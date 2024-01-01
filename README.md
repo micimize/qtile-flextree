@@ -6,7 +6,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/qtile-flex_tree.svg)](https://pypi.python.org/pypi/qtile-flex_tree)
 
 This is a fork of a fork of https://github.com/numirias/qtile-flex_tree.
-It was renamed primarily to reduce potential namespace conflation with KDE flex_tree
+It was renamed primarily to reduce potential namespace conflation with KDE Plasma
 
 FlexTree is a flexible, tree-based layout for [Qtile](https://github.com/qtile/qtile/).
 
