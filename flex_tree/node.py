@@ -4,6 +4,9 @@ from math import isclose
 import sys
 from typing import Generator, Optional
 
+from libqtile.backend.base.window import Window
+
+
 if sys.version_info >= (3, 6):
     from enum import Enum, Flag, auto
 else:
@@ -67,17 +70,18 @@ class Node:
     min_size_default = 100
     root_orient = HORIZONTAL
 
-    def __init__(self, payload=None, x=None, y=None, width=None, height=None):
+    def __init__(self, payload: Window |None=None, x=None, y=None, width=None, height=None):
         self.payload = payload
         self._x = x
         self._y = y
         self._width = width
         self._height = height
         self._size = None
-        self.children = []
+        self.children:list["Node"] = []
         self.last_accessed = 0
         self._parent: Optional["Node"] = None
         self.restorables = {}
+        self.is_inline_minimized: bool = False
     
     @property
     def parent(self) -> "Node":
@@ -185,18 +189,31 @@ class Node:
             yield from child.all_leafs
 
     @property
-    def orient(self):
+    def orient(self) -> Orient:
         if self.is_root:
             return self.root_orient
         return ~self.parent.orient
 
     @property
-    def horizontal(self):
+    def horizontal(self)-> bool:
         return self.orient is HORIZONTAL
 
     @property
-    def vertical(self):
+    def vertical(self)-> bool:
         return self.orient is VERTICAL
+
+    @property
+    def is_visually_singular_or_vertical(self) -> bool:
+        """For inline minimization purposes.
+        
+        Inline minimized windows behave like thin, 
+        """
+        # TODO I don't think a Node can have both payload and children
+        if self.is_inline_minimized or len(self.children) <= 1:
+            return True
+        if self.horizontal:
+            return False
+        return all(child.is_visually_singular_or_vertical for child in self.children)
 
     @property
     def x(self)->int:
@@ -387,7 +404,7 @@ class Node:
                 Node.fit_into(child, new_size)
 
     @property
-    def fixed(self)->float:
+    def fixed(self)->bool:
         """A node is fixed if it has a specified size."""
         return self._size is not None
 
@@ -544,7 +561,7 @@ class Node:
         for child in [node, self] if reverse else [self, node]:
             container.add_child(child)
 
-    def add_node(self, node, mode=None):
+    def add_node(self, node: "Node", mode=None) -> None:
         """Add node according to the mode.
 
         This can result in adding it as a child, joining with it in a new
