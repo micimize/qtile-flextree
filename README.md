@@ -1,17 +1,18 @@
-# Plasma
+# FlexTree
 
-[![Build Status](https://travis-ci.org/numirias/qtile-plasma.svg?branch=master)](https://travis-ci.org/numirias/qtile-plasma)
-[![codecov](https://codecov.io/gh/numirias/qtile-plasma/branch/master/graph/badge.svg)](https://codecov.io/gh/numirias/qtile-plasma)
-[![PyPI Version](https://img.shields.io/pypi/v/qtile-plasma.svg)](https://pypi.python.org/pypi/qtile-plasma)
-[![Python Versions](https://img.shields.io/pypi/pyversions/qtile-plasma.svg)](https://pypi.python.org/pypi/qtile-plasma)
+[![Build Status](https://travis-ci.org/numirias/qtile-flex_tree.svg?branch=master)](https://travis-ci.org/numirias/qtile-flex_tree)
+[![codecov](https://codecov.io/gh/numirias/qtile-flex_tree/branch/master/graph/badge.svg)](https://codecov.io/gh/numirias/qtile-flex_tree)
+[![PyPI Version](https://img.shields.io/pypi/v/qtile-flex_tree.svg)](https://pypi.python.org/pypi/qtile-flex_tree)
+[![Python Versions](https://img.shields.io/pypi/pyversions/qtile-flex_tree.svg)](https://pypi.python.org/pypi/qtile-flex_tree)
 
-Plasma is a flexible, tree-based layout for [Qtile](https://github.com/qtile/qtile/).
+This is a fork of a fork of https://github.com/numirias/qtile-flex_tree.
+It was renamed primarily to reduce potential namespace conflation with KDE flex_tree
 
-If you're looking for a well-tested and maintained alternative to Qtile's default layouts, give it a try.
+FlexTree is a flexible, tree-based layout for [Qtile](https://github.com/qtile/qtile/).
 
 ## About
 
-Plasma works on a tree structure. Each node represents a container with child containers aligned either horizontally or vertically (similar to [i3](https://i3wm.org/)). Each window is attached to a leaf, taking either a proportional or a specific custom amount of space in its parent container. Windows can be resized, rearranged and integrated into other containers, enabling lots of different setups.
+FlexTree works on a tree structure. Each node represents a container with child containers aligned either horizontally or vertically (similar to [i3](https://i3wm.org/)). Each window is attached to a leaf, taking either a proportional or a specific custom amount of space in its parent container. Windows can be resized, rearranged and integrated into other containers, enabling lots of different setups.
 
 ## Demo
 
@@ -21,19 +22,19 @@ Here is a quick demo showing some of the main features (adding modes, moving, in
 
 ## Installation
 
-Install the package. You can [get it from PyPI](https://pypi.python.org/pypi/qtile-plasma/):
+Install the package. You can [get it from PyPI](https://pypi.python.org/pypi/qtile-flex_tree/):
 
 ```
-pip install --upgrade qtile-plasma
+pip install --upgrade qtile-flex_tree
 ```
 
 Then, add the layout to your config (`~/.config/qtile/config.py`):
 
 ```python
-from plasma import Plasma
+from flex_tree import FlexTree
 ...
 layouts = [
-    Plasma(
+    FlexTree(
         border_normal='#333333',
         border_focus='#00e891',
         border_normal_fixed='#006863',
@@ -203,13 +204,13 @@ window.</td>
 
 ## Contributing
 
-If you have found a bug or want to suggest a feature, please [file an issue](https://github.com/numirias/qtile-plasma/issues/new).
+If you have found a bug or want to suggest a feature, please [file an issue](https://github.com/numirias/qtile-flex_tree/issues/new).
 
 
-To work on Plasma locally, you need to clone submodules too, since the layout integration tests use some of Qtile's test fixtures:
+To work on FlexTree locally, you need to clone submodules too, since the layout integration tests use some of Qtile's test fixtures:
 
 ```
-git clone --recursive https://github.com/numirias/qtile-plasma/
+git clone --recursive https://github.com/numirias/qtile-flex_tree/
 ```
 
 Also make sure you meet the [hacking requirements of Qtile](http://docs.qtile.org/en/latest/manual/hacking.html). In particular, have `xserver-xephyr` installed. Then run:
@@ -218,7 +219,7 @@ Also make sure you meet the [hacking requirements of Qtile](http://docs.qtile.or
 make init
 ```
 
-If that fails, run the `init` instructions from the [Makefile](https://github.com/numirias/qtile-plasma/blob/master/Makefile) one by one.
+If that fails, run the `init` instructions from the [Makefile](https://github.com/numirias/qtile-flex_tree/blob/master/Makefile) one by one.
 
 All new changes need to be fully test-covered and pass the linting:
 

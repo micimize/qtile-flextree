@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(
-    name='qtile-plasma',
-    packages=['plasma'],
+    name='qtile-flex_tree',
+    packages=['flex_tree'],
     version='1.5.6',
     description='A flexible, tree-based layout for Qtile',
     author='numirias',
     author_email='numirias@users.noreply.github.com',
-    url='https://github.com/numirias/qtile-plasma',
+    url='https://github.com/numirias/qtile-flex_tree',
     license='MIT',
     python_requires='>=3',
     install_requires=['xcffib>=0.5.0', 'qtile>=0.17'],

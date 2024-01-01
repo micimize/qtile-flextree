@@ -3,7 +3,7 @@ import sys
 
 from pytest import fixture
 
-from plasma.node import Node
+from flex_tree.node import Node
 
 # We borrow Qtile's testing framework. That's not elegant but the best option.
 sys.path.insert(0, str(Path(__file__).parents[1] / 'lib'))  # noqa: E402

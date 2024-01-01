@@ -1,6 +1,5 @@
 import copy
-import imp
-from typing import cast
+from typing import Optional, cast
 
 from xcffib.xproto import StackMode
 from libqtile.layout.base import Layout
@@ -10,7 +9,7 @@ from .node import Node, AddMode, NotRestorableError
 
 
 
-class Plasma(Layout):
+class FlexTree(Layout):
     """A flexible tree-based layout.
 
     Each tree node represents a container whose children are aligned either
@@ -20,7 +19,7 @@ class Plasma(Layout):
     integrated into other containers.
     """
     defaults = [
-        ('name', 'Plasma', 'Layout name'),
+        ('name', 'FlexTree', 'Layout name'),
         ('border_normal', '#333333', 'Unfocused window border color'),
         ('border_focus', '#00e891', 'Focused window border color'),
         ('border_normal_fixed', '#333333',
@@ -38,24 +37,24 @@ class Plasma(Layout):
 
     def __init__(self, **config):
         Layout.__init__(self, **config)
-        self.add_defaults(Plasma.defaults)
+        self.add_defaults(FlexTree.defaults)
         self.root = Node(None, *self.default_dimensions)
         self.focused = None
         self.add_mode = None
 
     @staticmethod
     def convert_names(tree):
-        return [Plasma.convert_names(n) if isinstance(n, list) else
+        return [FlexTree.convert_names(n) if isinstance(n, list) else
                 n.payload.name for n in tree]
     
     def definitely_find_payload(self, payload)-> Node:
-        node = self.root.find_payload(self.focused)
+        node = self.root.find_payload(payload)
         assert node is not None, f"Failed to find {payload=} from root"
         return node
 
     @property
-    def focused_node(self) -> Node:
-        return self.definitely_find_payload(self.focused)
+    def focused_node(self) -> Optional["Node"]:
+        return self.root.find_payload(self.focused)
 
     def info(self):
         info = super().info()
@@ -71,6 +70,7 @@ class Plasma(Layout):
         return clone
 
     def add_client(self, client):
+        print(f'Adding {client=}')
         node = self.root if self.focused_node is None else self.focused_node
         new = Node(client)
         try:
@@ -87,7 +87,7 @@ class Plasma(Layout):
         self.root.y = screen_rect.y
         self.root.width = screen_rect.width
         self.root.height = screen_rect.height
-        node = self.definitely_find_payload(client)
+        node = self.root.find_payload(client)
         
         border_width = self.border_width_single if self.root.tree == [node] \
             else self.border_width

@@ -497,7 +497,7 @@ class Node:
     @property
     def close_right(self):
         return self.close_neighbor(RIGHT)
-
+    
     def add_child(self, node: "Node", idx: Optional[int]=None):
         if idx is None:
             idx = len(self)
@@ -534,11 +534,7 @@ class Node:
         new._size = old._size  # pylint: disable=protected-access
 
     def swap_with(self, other: "Node")-> None:
-        other_parent = other.parent
-        other_size = other._size
-        self.parent.replace_child(self, other)
-        other_parent.replace_child(other, self)
-        self._size = other_size
+        self.payload, other.payload = other.payload, self.payload
 
     def flip_with(self, node: "Node", reverse:bool=False)-> None:
         """Join with node in a new, orthogonal container."""

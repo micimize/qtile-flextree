@@ -1,8 +1,8 @@
 import pytest
 from pytest import approx
 
-from plasma.debug import draw, info # noqa
-from plasma.node import Node, HORIZONTAL, AddMode, NotRestorableError
+from flex_tree.debug import draw, info # noqa
+from flex_tree.node import Node, HORIZONTAL, AddMode, NotRestorableError
 
 from .conftest import Nodes
 

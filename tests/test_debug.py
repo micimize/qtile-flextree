@@ -1,4 +1,4 @@
-from plasma.debug import draw, tree, info
+from flex_tree.debug import draw, tree, info
 
 
 class TestDebugging:

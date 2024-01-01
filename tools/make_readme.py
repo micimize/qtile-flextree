@@ -12,7 +12,7 @@ import re
 
 
 readme_path = 'README.md'
-layout_path = 'plasma/layout.py'
+layout_path = 'flex_tree/layout.py'
 marker = '<!--commands-{pos}-->\n'
 start_marker = marker.format(pos='start')
 end_marker = marker.format(pos='end')

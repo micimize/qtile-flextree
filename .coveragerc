@@ -1,8 +1,8 @@
 [run]
 branch = True
-source = plasma
+source = flex_tree
 
 [paths]
 source =
-   plasma
-   .tox/*/lib/python*/site-packages/plasma
+   flex_tree
+   .tox/*/lib/python*/site-packages/flex_tree

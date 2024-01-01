@@ -3,8 +3,8 @@ from pytest import fixture, mark
 import sys
 import time
 
-from plasma import Plasma
-from plasma.node import Node
+from flex_tree import FlexTree
+from flex_tree.node import Node
 
 # We borrow Qtile's testing framework. That's not elegant but the best option.
 sys.path.insert(0, str(Path(__file__).parents[1] / 'lib'))  # noqa: E402
@@ -36,14 +36,14 @@ class Config(_Config):
         config.Group('g2'),
         config.Group('g3')
     ]
-    layouts = [Plasma()]
+    layouts = [FlexTree()]
     floating_layout = Floating()
     keys = []
     mouse = []
     screens = []
     follow_mouse_focus = False
 
-def plasma_config(func):
+def flex_tree_config(func):
     config = mark.parametrize('qtile', [Config], indirect=True)(func)
     return no_xinerama(config)
 
@@ -53,11 +53,11 @@ def tree(qtile):
 class TestLayout:
 
     def test_init(self):
-        layout = Plasma()
+        layout = FlexTree()
         assert isinstance(layout.root, Node)
 
     def test_focus(self, root):
-        layout = Plasma()
+        layout = FlexTree()
         layout.root = root
         a, b, c, d = 'abcd'
         layout.add(a)
@@ -72,7 +72,7 @@ class TestLayout:
         assert layout.focused is c
 
     def test_access(self, root):
-        layout = Plasma()
+        layout = FlexTree()
         layout.root = root
         layout.add('a')
         now = time.time()
@@ -80,13 +80,13 @@ class TestLayout:
         layout.focus('a')
         assert layout.root.find_payload('a').last_accessed > now
 
-    @plasma_config
+    @flex_tree_config
     def test_info(self, qtile):
         qtile.test_window('a')
         qtile.test_window('b')
         assert qtile.c.layout.info()['tree'] == ['a', 'b']
 
-    @plasma_config
+    @flex_tree_config
     def test_windows(self, qtile):
         qtile.test_window('a')
         qtile.test_window('b')
@@ -94,7 +94,7 @@ class TestLayout:
         assert_focused(qtile, 'c')
         assert tree(qtile) == ['a', 'b', 'c']
 
-    @plasma_config
+    @flex_tree_config
     def test_split_directions(self, qtile):
         qtile.test_window('a')
         qtile.c.layout.mode_horizontal()
@@ -103,7 +103,7 @@ class TestLayout:
         qtile.test_window('c')
         assert tree(qtile) == ['a', ['b', 'c']]
 
-    @plasma_config
+    @flex_tree_config
     def test_directions(self, qtile, grid):
         assert_focused(qtile, 'd')
         qtile.c.layout.left()
@@ -121,7 +121,7 @@ class TestLayout:
         qtile.c.layout.next()
         assert_focused(qtile, 'd')
 
-    @plasma_config
+    @flex_tree_config
     def test_move(self, qtile, grid):
         assert tree(qtile) == [['a', 'c'], ['b', 'd']]
         qtile.c.layout.move_up()
@@ -133,7 +133,7 @@ class TestLayout:
         qtile.c.layout.move_right()
         assert tree(qtile) == [['a', 'c'], 'b', 'd']
 
-    @plasma_config
+    @flex_tree_config
     def test_integrate(self, qtile, grid):
         qtile.c.layout.integrate_left()
         assert tree(qtile) == [['a', 'c', 'd'], 'b']
@@ -145,7 +145,7 @@ class TestLayout:
         qtile.c.layout.integrate_right()
         assert tree(qtile) == [['a', 'c'], ['b', 'd']]
 
-    @plasma_config
+    @flex_tree_config
     def test_sizes(self, qtile):
         qtile.test_window('a')
         qtile.test_window('b')
@@ -178,7 +178,7 @@ class TestLayout:
         info = qtile.c.window.info()
         assert info['height'] == 210 - 2
 
-    @plasma_config
+    @flex_tree_config
     def test_remove(self, qtile):
         a = qtile.test_window('a')
         b = qtile.test_window('b')
@@ -188,7 +188,7 @@ class TestLayout:
         qtile.kill_window(b)
         assert tree(qtile) == []
 
-    @plasma_config
+    @flex_tree_config
     def test_split_mode(self, qtile):
         qtile.test_window('a')
         qtile.test_window('b')
@@ -204,7 +204,7 @@ class TestLayout:
         qtile.test_window('f')
         assert qtile.c.window.info()['height'] == 100 - 2
 
-    @plasma_config
+    @flex_tree_config
     def test_recent(self, qtile):
         qtile.test_window('a')
         qtile.test_window('b')
@@ -223,6 +223,6 @@ class TestLayout:
         """Adding nodes when the correct root dimensions are still unknown
         should not raise an error.
         """
-        layout = Plasma()
+        layout = FlexTree()
         layout.add(object())
         layout.add(object())
