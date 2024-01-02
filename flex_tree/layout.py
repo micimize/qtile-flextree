@@ -98,6 +98,10 @@ class FlexTree(Layout):
                                ('focus' if client.has_focus else 'normal') +
                                ('' if node.flexible else '_fixed'))
         x, y, width, height = node.pixel_perfect
+       #if node.is_inline_minimized:
+
+       #    self.group
+       #    core
         client.place(
             x,
             y,
@@ -154,6 +158,11 @@ class FlexTree(Layout):
         nodes = [n for n in self.root.all_leafs if n is not self.focused_node]
         most_recent = max(nodes, key=lambda n: n.last_accessed)
         self.focus_node(most_recent)
+
+    @expose_command()
+    def toggle_minimize_inline(self):
+        self.focused_node.toggle_minimize_inline()
+        self.refocus()
 
     @expose_command()
     def left(self):

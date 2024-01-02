@@ -2,7 +2,7 @@ from collections import namedtuple
 import time
 from math import isclose
 import sys
-from typing import Generator, Optional
+from typing import Final, Generator, Optional
 
 from libqtile.backend.base.window import Window
 
@@ -13,6 +13,8 @@ else:
     # Python 3.5 backport
     from .enum import Enum, Flag, auto
 
+
+INLINE_MINIMIZED_HEIGHT: Final = 30
 
 Point = namedtuple('Point', 'x y')
 Dimensions = namedtuple('Dimensions', 'x y width height')
@@ -81,7 +83,7 @@ class Node:
         self.last_accessed = 0
         self._parent: Optional["Node"] = None
         self.restorables = {}
-        self.is_inline_minimized: bool = False
+        self._is_inline_minimized: bool = False
     
     @property
     def parent(self) -> "Node":
@@ -96,7 +98,7 @@ class Node:
         info = self.payload or ''
         if self:
             info += ' +%d' % len(self)
-        return '<Node %s %x>' % (info, id(self))
+        return '<Node %s %s %x>' % (info, self.orient, id(self))
 
     def __contains__(self, node):
         if node is self:
@@ -334,6 +336,15 @@ class Node:
     def capacity(self):
         return self.width if self.horizontal else self.height
 
+    def toggle_minimize_inline(self):
+        self._is_inline_minimized = not self._is_inline_minimized
+        total = self.parent.capacity
+        Node.fit_into(self.parent.children, total - (total / len(self.parent)))
+
+    @property
+    def is_inline_minimized(self):
+        return self.horizontal and self._is_inline_minimized
+
     @property
     def size(self):
         """Return amount of space taken in parent container."""
@@ -341,6 +352,8 @@ class Node:
             return None
         if self.fixed:
             return self._size
+        if self.is_inline_minimized:
+            return INLINE_MINIMIZED_HEIGHT
         if self.flexible:
             # Distribute space evenly among flexible nodes
             taken = sum(n.size for n in self.siblings if not n.flexible)
@@ -410,6 +423,8 @@ class Node:
 
     @property
     def min_size(self)->int:
+        if self.is_inline_minimized:
+            return INLINE_MINIMIZED_HEIGHT
         if self.fixed:
             return self._size
         if self.is_leaf:
@@ -420,7 +435,7 @@ class Node:
     @property
     def min_size_bound(self)->int:
         if self.is_leaf:
-            return self.min_size_default
+            return INLINE_MINIMIZED_HEIGHT if self.is_inline_minimized else self.min_size_default
         return max(sum(gc.min_size_bound for gc in c) or
                    self.min_size_default for c in self)
 
@@ -432,7 +447,7 @@ class Node:
         """A node is flexible if its size isn't (explicitly or implictly)
         determined.
         """
-        if self.fixed:
+        if self.is_inline_minimized or self.fixed:
             return False
         return all((any(gc.flexible for gc in c) or c.is_leaf) for c in self)
 
