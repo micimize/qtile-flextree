@@ -350,10 +350,10 @@ class Node:
         """Return amount of space taken in parent container."""
         if self.is_root:
             return None
-        if self.fixed:
-            return self._size
         if self.is_inline_minimized:
             return INLINE_MINIMIZED_HEIGHT
+        if self.fixed:
+            return self._size
         if self.flexible:
             # Distribute space evenly among flexible nodes
             taken = sum(n.size for n in self.siblings if not n.flexible)
